@@ -57,8 +57,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     SecurityContextHolder.getContext().setAuthentication(authToken);
 
                     // Renovação Sliding Session: Gerar um novo token para cada requisição válida
-                    if (userDetails instanceof UsuarioDetails) {
-                        UsuarioDetails ud = (UsuarioDetails) userDetails;
+                    if (userDetails instanceof UsuarioDetails ud) {
                         String newToken = jwtUtil.generateAccessToken(
                                 ud.getUsername(),
                                 ud.getId(),

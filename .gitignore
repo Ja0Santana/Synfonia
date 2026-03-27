@@ -45,16 +45,39 @@ COMO_BUILDAR.md
 GENERAL_MODEL_RULES.md
 PLANO_IMPLEMENTACAO_LOGIN.md
 PROJECT_MODEL_RULES.md
+FIXES_SUMMARY.md
+SETUP_GUIDE.md
 build_project.bat
 clean_build.bat
 clean_build.ps1
 fix_build.bat
+setup_local.bat
+setup_local.sh
+setup-local.ps1
+delete_temp.bat
+cleanup.sh
 
 ### Sensitive and Data ###
 .env
 .env.*
+.env.local
+.env.*.local
+gradle.properties
 uploads/
 
 ### SonarQube ###
 .scannerwork/
 sonar-project.properties
+
+### Spring Boot ###
+application.properties.local
+application-local.properties
+application-dev.properties
+
+### OS specific ###
+.DS_Store
+Thumbs.db
+
+### Database ###
+create_db_local.sql
+*.sql.local

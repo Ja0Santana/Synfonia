@@ -1,5 +1,9 @@
 package com.joaopaulo.musicas.controllers;
 
+import com.joaopaulo.musicas.dtos.request.MusicSaveRequest;
+import com.joaopaulo.musicas.dtos.request.PlaylistRequest;
+import com.joaopaulo.musicas.dtos.request.SpotifyImportDataRequest;
+import com.joaopaulo.musicas.dtos.request.SpotifyImportRequest;
 import com.joaopaulo.musicas.entities.Playlist;
 import com.joaopaulo.musicas.services.PlaylistService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -22,18 +26,25 @@ public class PlaylistController {
 
     private final PlaylistService playlistService;
 
-    @Operation(summary = "Criar uma nova playlist", description = "Cria uma playlist com nome, vibe, privacidade e capa (Base64).")
+    @Operation(summary = "Cria uma nova playlist", description = "Cria uma playlist com nome, vibe, privacidade e capa (Base64).")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "Playlist criada com sucesso"),
             @ApiResponse(responseCode = "400", description = "Dados da playlist inválidos"),
             @ApiResponse(responseCode = "401", description = "Usuário não autenticado"),
             @ApiResponse(responseCode = "500", description = "Erro interno no servidor")
     })
-
     @PostMapping
-    public ResponseEntity<Playlist> create(@RequestBody Playlist playlist) {
-        playlist.setUserId(playlistService.getLoggedUserId());
-        return ResponseEntity.status(HttpStatus.CREATED).body(playlistService.create(playlist));
+    public ResponseEntity<Playlist> create(@RequestBody PlaylistRequest request) {
+        Long userId = playlistService.getLoggedUserId();
+        Playlist playlist = Playlist.builder()
+                .nome(request.getNome())
+                .vibe(request.getVibe())
+                .publico(request.isPublico())
+                .capaUrl(request.getCapaUrl())
+                .userId(userId)
+                .trackIds(new java.util.ArrayList<>())
+                .build();
+        return ResponseEntity.status(HttpStatus.CREATED).body(playlistService.save(playlist));
     }
 
     @Operation(summary = "Atualizar uma playlist existente")
@@ -42,11 +53,16 @@ public class PlaylistController {
             @ApiResponse(responseCode = "401", description = "Não autorizado"),
             @ApiResponse(responseCode = "404", description = "Playlist não encontrada")
     })
-
     @PutMapping("/{id}")
     public ResponseEntity<Playlist> update(
             @PathVariable String id,
-            @RequestBody Playlist playlistDetails) {
+            @RequestBody PlaylistRequest request) {
+        Playlist playlistDetails = Playlist.builder()
+                .nome(request.getNome())
+                .vibe(request.getVibe())
+                .publico(request.isPublico())
+                .capaUrl(request.getCapaUrl())
+                .build();
         return ResponseEntity.ok(playlistService.update(id, playlistDetails));
     }
 
@@ -89,7 +105,7 @@ public class PlaylistController {
     @PostMapping("/{playlistId}/tracks")
     public ResponseEntity<Playlist> addTrack(
             @Parameter(description = "ID da playlist (MongoDB)") @PathVariable String playlistId,
-            @RequestBody com.joaopaulo.musicas.dtos.request.MusicSaveRequest request) {
+            @RequestBody MusicSaveRequest request) {
         return ResponseEntity.ok(playlistService.addTrack(playlistId, request));
     }
 
@@ -97,7 +113,7 @@ public class PlaylistController {
     @PostMapping("/{playlistId}/tracks/batch")
     public ResponseEntity<Playlist> addTracks(
             @Parameter(description = "ID da playlist (MongoDB)") @PathVariable String playlistId,
-            @RequestBody List<com.joaopaulo.musicas.dtos.request.MusicSaveRequest> requests) {
+            @RequestBody List<MusicSaveRequest> requests) {
         return ResponseEntity.ok(playlistService.addTracks(playlistId, requests));
     }
 
@@ -105,14 +121,14 @@ public class PlaylistController {
     @PostMapping("/{playlistId}/import-spotify")
     public ResponseEntity<Playlist> importSpotify(
             @Parameter(description = "ID da playlist (MongoDB)") @PathVariable String playlistId,
-            @RequestBody com.joaopaulo.musicas.dtos.request.SpotifyImportRequest request) {
-        return ResponseEntity.ok(playlistService.importSpotifyTracks(playlistId, request.getSpotifyPlaylistId(), request.getAccessToken()));
+            @RequestBody SpotifyImportRequest request) {
+        return ResponseEntity.ok(playlistService.importSpotifyTracks(playlistId, request.getSpotifyPlaylistId()));
     }
 
     @Operation(summary = "Importa uma playlist do Spotify enviando os dados diretamente do frontend (Bypass 403)")
     @PostMapping("/import-data")
     public ResponseEntity<Playlist> importSpotifyData(
-            @RequestBody com.joaopaulo.musicas.dtos.request.SpotifyImportDataRequest request) {
+            @RequestBody SpotifyImportDataRequest request) {
         return ResponseEntity.ok(playlistService.importPlaylistData(request));
     }
 

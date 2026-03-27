@@ -1,6 +1,7 @@
 package com.joaopaulo.musicas.services;
 
 import com.joaopaulo.musicas.entities.Usuario;
+import com.joaopaulo.musicas.exceptions.UnauthorizedException;
 import com.joaopaulo.musicas.exceptions.UsuarioNaoEncontradoException;
 import com.joaopaulo.musicas.repositories.UsuarioRepository;
 import com.joaopaulo.musicas.security.UsuarioDetails;
@@ -57,7 +58,7 @@ public class UsuarioService {
     private Usuario getLoggedUser() {
         var auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null || !(auth.getPrincipal() instanceof UsuarioDetails details)) {
-            throw new RuntimeException("Usuário não está autenticado");
+            throw new UnauthorizedException("Usuário não está autenticado");
         }
         return usuarioRepository.findById(details.getId())
                 .orElseThrow(() -> new UsuarioNaoEncontradoException("Usuário não encontrado"));

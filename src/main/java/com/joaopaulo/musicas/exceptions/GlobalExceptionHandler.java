@@ -17,8 +17,7 @@ import java.util.Map;
 
 @RestControllerAdvice
 @Slf4j
-public class
-GlobalExceptionHandler {
+public class GlobalExceptionHandler {
 
     @ExceptionHandler(UsuarioNaoEncontradoException.class)
     public ResponseEntity<ErrorResponse> handleUsuarioNaoEncontrado(UsuarioNaoEncontradoException ex, HttpServletRequest request) {
@@ -65,6 +64,23 @@ GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleExternalService(ExternalServiceException ex, HttpServletRequest request) {
         log.error("Falha externa: {}", ex.getMessage());
         return buildResponse(HttpStatus.BAD_GATEWAY, "Erro no provedor externo", ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(SpotifyApiException.class)
+    public ResponseEntity<ErrorResponse> handleSpotifyApi(SpotifyApiException ex, HttpServletRequest request) {
+        log.error("Erro na API do Spotify: {}", ex.getMessage());
+        return buildResponse(HttpStatus.BAD_GATEWAY, "Erro no Spotify", ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(UnauthorizedException.class)
+    public ResponseEntity<ErrorResponse> handleUnauthorized(UnauthorizedException ex, HttpServletRequest request) {
+        return buildResponse(HttpStatus.UNAUTHORIZED, "Não autorizado", ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(FileStorageException.class)
+    public ResponseEntity<ErrorResponse> handleFileStorage(FileStorageException ex, HttpServletRequest request) {
+        log.error("Erro de armazenamento: {}", ex.getMessage());
+        return buildResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Erro de arquivo", ex.getMessage(), request);
     }
 
     @ExceptionHandler(AccessDeniedException.class)

@@ -102,7 +102,7 @@ public class UserSongService {
         if (trackId == null) return false;
         // IDs do Spotify são alfanuméricos (letras e números) de ~22 caracteres.
         // IDs da Apple/iTunes são puramente numéricos.
-        return trackId.length() > 10 && trackId.matches("^[a-zA-Z0-9]+$") && !trackId.matches("^[0-9]+$");
+        return trackId.length() > 10 && trackId.matches("^[a-zA-Z0-9]+$") && !trackId.matches("^\\d+$");
     }
 
 
