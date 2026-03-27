@@ -1,6 +1,7 @@
 package com.joaopaulo.musicas.controllers;
 
 import com.joaopaulo.musicas.dtos.response.SpotifyTokenResponse;
+import com.joaopaulo.musicas.exceptions.SpotifyApiException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -59,13 +60,13 @@ public class SpotifyController {
                     .retrieve()
                     .body(SpotifyTokenResponse.class);
 
-            if (response != null) {
-                log.info("[Spotify Auth] Sucesso! Token recebido: {}...", response.access_token().substring(0, 10));
+            if (response != null && response.access_token() != null) {
+                log.info("[Spotify Auth] Sucesso! Token recebido.");
             }
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             log.error("Erro ao trocar código por token no Spotify: {}", e.getMessage());
-            return ResponseEntity.internalServerError().build();
+            throw new SpotifyApiException("Erro na autenticação com Spotify: " + e.getMessage(), e);
         }
     }
 }

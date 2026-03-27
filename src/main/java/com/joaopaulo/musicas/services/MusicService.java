@@ -30,6 +30,10 @@ public class MusicService {
     private final MusicMapper musicMapper;
     private final RestClient restClient;
 
+    private static final String ALBUM = "album";
+    private static final String ARTIST = "artist";
+    private static final String TITLE = "title";
+
     public List<MusicEntity> searchByFilter(String nome, String artista, String album, String tipo, Integer limit) {
         MusicRequest request = new MusicRequest(nome, artista, album, limit);
         validateRequest(request);
@@ -57,12 +61,6 @@ public class MusicService {
 
     public MusicEntity findById(String id) {
         return musicRepository.findById(id)
-                .map(entity -> {
-                    // Revertido: Não tentamos mais fallback automático em TODA busca por ID
-                    // para evitar loops de log e rate limit da Apple.
-                    // O fallback agora é feito sob demanda no frontend ou na seleção.
-                    return entity;
-                })
                 .orElseGet(() -> {
                     log.info("Música {} não encontrada no banco. Tentando recuperar da Apple via Lookup.", id);
                     return fetchByTrackIdFromApple(id);
@@ -144,9 +142,9 @@ public class MusicService {
 
     private List<MusicEntity> fetchFromAppleWithAttribute(MusicRequest request, String tipo) {
         String attributeParam = switch (tipo) {
-            case "title" -> "songTerm";
-            case "artist" -> "artistTerm";
-            case "album" -> "albumTerm";
+            case TITLE -> "songTerm";
+            case ARTIST -> "artistTerm";
+            case ALBUM -> "albumTerm";
             default -> null;
         };
 
@@ -218,40 +216,41 @@ public class MusicService {
     }
 
     private int getRelevanceScore(MusicEntity music, String term, String tipo) {
-        boolean isExactArtist = music.getArtista() != null && music.getArtista().equalsIgnoreCase(term);
-        boolean isContainsArtist = music.getArtista() != null && music.getArtista().toLowerCase().contains(term);
-        boolean isExactName = music.getNome() != null && music.getNome().equalsIgnoreCase(term);
-        boolean isContainsName = music.getNome() != null && music.getNome().toLowerCase().contains(term);
-        boolean isExactAlbum = music.getAlbum() != null && music.getAlbum().equalsIgnoreCase(term);
-        boolean isContainsAlbum = music.getAlbum() != null && music.getAlbum().toLowerCase().contains(term);
-
         return switch (tipo) {
-            case "artist" -> {
-                if (isExactArtist) yield 0;
-                if (isContainsArtist) yield 1;
-                if (isContainsName) yield 2;
-                yield 3;
-            }
-            case "album" -> {
-                if (isExactAlbum) yield 0;
-                if (isContainsAlbum) yield 1;
-                if (isContainsName) yield 2;
-                yield 3;
-            }
-            case "title" -> {
-                if (isExactName) yield 0;
-                if (isContainsName) yield 1;
-                yield 2;
-            }
-            default -> {
-                if (isExactArtist) yield 0;
-                if (isExactName) yield 1;
-                if (isContainsArtist) yield 2;
-                if (isContainsName) yield 3;
-                if (isContainsAlbum) yield 4;
-                yield 5;
-            }
+            case ARTIST -> getArtistRelevance(music, term);
+            case ALBUM -> getAlbumRelevance(music, term);
+            case TITLE -> getTitleRelevance(music, term);
+            default -> getDefaultRelevance(music, term);
         };
+    }
+
+    private int getArtistRelevance(MusicEntity music, String term) {
+        if (music.getArtista() != null && music.getArtista().equalsIgnoreCase(term)) return 0;
+        if (music.getArtista() != null && music.getArtista().toLowerCase().contains(term)) return 1;
+        if (music.getNome() != null && music.getNome().toLowerCase().contains(term)) return 2;
+        return 3;
+    }
+
+    private int getAlbumRelevance(MusicEntity music, String term) {
+        if (music.getAlbum() != null && music.getAlbum().equalsIgnoreCase(term)) return 0;
+        if (music.getAlbum() != null && music.getAlbum().toLowerCase().contains(term)) return 1;
+        if (music.getNome() != null && music.getNome().toLowerCase().contains(term)) return 2;
+        return 3;
+    }
+
+    private int getTitleRelevance(MusicEntity music, String term) {
+        if (music.getNome() != null && music.getNome().equalsIgnoreCase(term)) return 0;
+        if (music.getNome() != null && music.getNome().toLowerCase().contains(term)) return 1;
+        return 2;
+    }
+
+    private int getDefaultRelevance(MusicEntity music, String term) {
+        if (music.getArtista() != null && music.getArtista().equalsIgnoreCase(term)) return 0;
+        if (music.getNome() != null && music.getNome().equalsIgnoreCase(term)) return 1;
+        if (music.getArtista() != null && music.getArtista().toLowerCase().contains(term)) return 2;
+        if (music.getNome() != null && music.getNome().toLowerCase().contains(term)) return 3;
+        if (music.getAlbum() != null && music.getAlbum().toLowerCase().contains(term)) return 4;
+        return 5;
     }
 
     private int getVersionPenalty(MusicEntity music) {

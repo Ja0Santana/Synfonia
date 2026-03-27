@@ -141,7 +141,7 @@ public class AuthService {
         // Verifica se contém letras maiúsculas, minúsculas, números e caracteres especiais
         if (!Pattern.compile("[A-Z]").matcher(password).find() ||
             !Pattern.compile("[a-z]").matcher(password).find() ||
-            !Pattern.compile("[0-9]").matcher(password).find() ||
+            !Pattern.compile("\\d").matcher(password).find() ||
             !Pattern.compile("[!@#$%^&*(),.?\":{}|<>]").matcher(password).find()) {
             throw new SenhaInvalidaException("Senha deve conter letras maiúsculas, minúsculas, números e caracteres especiais");
         }

@@ -1,6 +1,10 @@
 package com.joaopaulo.musicas.services;
 
+import com.joaopaulo.musicas.exceptions.FileStorageException;
+import com.joaopaulo.musicas.exceptions.FileStorageInitException;
+import com.joaopaulo.musicas.exceptions.InvalidFileNameException;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
@@ -22,26 +26,31 @@ public class FileStorageService {
         try {
             Files.createDirectories(this.fileStorageLocation);
         } catch (Exception ex) {
-            throw new RuntimeException("Não foi possível criar o diretório onde os arquivos enviados serão armazenados.", ex);
+            throw new FileStorageInitException("Não foi possível criar o diretório onde os arquivos enviados serão armazenados.", ex);
         }
     }
 
-    public String saveFile(MultipartFile file, String subDir) {
-        String fileName = UUID.randomUUID().toString() + "_" + StringUtils.cleanPath(file.getOriginalFilename());
+    public String saveFile(MultipartFile file, @Nullable String subDir) {
+        String originalFilename = file.getOriginalFilename();
+        if (originalFilename == null) {
+            throw new InvalidFileNameException("O nome do arquivo original não pode ser nulo.");
+        }
+        
+        String fileName = UUID.randomUUID().toString() + "_" + StringUtils.cleanPath(originalFilename);
         try {
             if (fileName.contains("..")) {
-                throw new RuntimeException("Desculpe! O nome do arquivo contém uma sequência de caminho inválida " + fileName);
+                throw new InvalidFileNameException("Desculpe! O nome do arquivo contém uma sequência de caminho inválida " + fileName);
             }
 
-            Path targetLocation = this.fileStorageLocation.resolve(subDir);
+            Path targetLocation = subDir != null ? this.fileStorageLocation.resolve(subDir) : this.fileStorageLocation;
             Files.createDirectories(targetLocation);
             targetLocation = targetLocation.resolve(fileName);
             
             Files.copy(file.getInputStream(), targetLocation, StandardCopyOption.REPLACE_EXISTING);
 
-            return subDir + "/" + fileName;
+            return (subDir != null ? subDir + "/" : "") + fileName;
         } catch (IOException ex) {
-            throw new RuntimeException("Não foi possível armazenar o arquivo " + fileName + ". Por favor, tente novamente!", ex);
+            throw new FileStorageException("Não foi possível armazenar o arquivo " + fileName + ". Por favor, tente novamente!", ex);
         }
     }
 }

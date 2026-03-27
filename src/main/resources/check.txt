@@ -1,4 +1,4 @@
-ï»¿spring.application.name=musicas
+spring.application.name=musicas
 
 # PostgreSQL Configuration (hardcoded)
 spring.datasource.url=jdbc:postgresql://localhost:5432/db_usuarios_musicas
@@ -12,7 +12,7 @@ spring.jpa.show-sql=true
 spring.jpa.properties.hibernate.format_sql=true
 spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect
 
-# MongoDB Configuration (mantido para relaï¿½ï¿½o usuï¿½rio->mï¿½sica)
+# MongoDB Configuration (mantido para relação usuário->música)
 spring.data.mongodb.uri=${MONGO_URI:}
 
 # Security Configuration
@@ -40,11 +40,9 @@ spring.jackson.date-format=dd/MM/yyyy HH:mm:ss
 spring.jackson.serialization.write-dates-as-timestamps=false
 
 # Spotify API Configuration
-spotify.client.id=${SPOTIFY_CLIENT_ID:}
-spotify.client.secret=${SPOTIFY_CLIENT_SECRET:}
-spotify.redirect.uri=${SPOTIFY_REDIRECT_URI:https://plumaged-danilo-endermically.ngrok-free.dev/callback}
+spotify.client.id=${SPOTIFY_CLIENT_ID}
+spotify.client.secret=${SPOTIFY_CLIENT_SECRET}
+spotify.redirect.uri=https://plumaged-danilo-endermically.ngrok-free.dev/callback
 
 server.address=0.0.0.0
 server.port=8080
-
-

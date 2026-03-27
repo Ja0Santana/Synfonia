@@ -33,9 +33,7 @@ public class HistoricoReproducaoService {
         }
 
         // Se já existir no histórico, remove a antiga para colocar no topo
-        historicoRepository.findByUserIdAndTrackId(userId, trackId).ifPresent(historico -> {
-            historicoRepository.delete(historico);
-        });
+        removerDoHistorico(userId, trackId);
 
         HistoricoReproducao novoHistorico = HistoricoReproducao.builder()
                 .userId(userId)
@@ -60,5 +58,9 @@ public class HistoricoReproducaoService {
                     historico.getDataReproducao()
             );
         }).toList();
+    }
+
+    public void removerDoHistorico(Long userId, String trackId) {
+        historicoRepository.findByUserIdAndTrackId(userId, trackId).ifPresent(historicoRepository::delete);
     }
 }
