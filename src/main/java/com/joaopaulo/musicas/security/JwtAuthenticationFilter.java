@@ -3,6 +3,7 @@ package com.joaopaulo.musicas.security;
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.Arrays;
 
 @Component
 @RequiredArgsConstructor
@@ -31,14 +33,30 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             FilterChain filterChain
     ) throws ServletException, IOException {
 
-        String authHeader = request.getHeader("Authorization");
+        String token = null;
 
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+        // 1. Tentar extrair do Header (Prioridade para APIs/Mobile)
+        String authHeader = request.getHeader("Authorization");
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            String headerToken = authHeader.substring(7);
+            if (jwtUtil.isTokenValidGracefully(headerToken)) {
+                token = headerToken;
+            }
+        }
+
+        // 2. Se não houver token válido no Header, tentar extrair do Cookie (Web Session)
+        if (token == null && request.getCookies() != null) {
+            token = Arrays.stream(request.getCookies())
+                    .filter(cookie -> "accessToken".equals(cookie.getName()))
+                    .map(Cookie::getValue)
+                    .findFirst()
+                    .orElse(null);
+        }
+
+        if (token == null) {
             filterChain.doFilter(request, response);
             return;
         }
-
-        String token = authHeader.substring(7);
 
         try {
             String email = jwtUtil.extractEmail(token);
@@ -55,27 +73,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     );
                     authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                     SecurityContextHolder.getContext().setAuthentication(authToken);
-
-                    // Renovação Sliding Session: Gerar um novo token para cada requisição válida
-                    if (userDetails instanceof UsuarioDetails ud) {
-                        String newToken = jwtUtil.generateAccessToken(
-                                ud.getUsername(),
-                                ud.getId(),
-                                ud.getAuthorities().stream()
-                                        .findFirst()
-                                        .map(a -> a.getAuthority().replace("ROLE_", ""))
-                                        .orElse("USER")
-                        );
-                        response.setHeader("New-Token", newToken);
-                    }
                 }
             }
         } catch (JwtException | IllegalArgumentException e) {
             log.warn("Token JWT inválido ou malformado: {}", e.getMessage());
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            response.setContentType("application/json");
-            response.getWriter().write("{\"detalhe\": \"Token inválido ou expirado. Por favor, faça login novamente.\"}");
-            return;
+            // Não bloqueamos aqui para permitir que rotas públicas funcionem mesmo com token inválido
+            // O SecurityConfig cuida da autorização final
         }
 
         filterChain.doFilter(request, response);
