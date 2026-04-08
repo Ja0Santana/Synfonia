@@ -22,25 +22,6 @@ public class UsuarioService {
 
     private final UsuarioRepository usuarioRepository;
 
-    public Usuario updateProfile(Map<String, Object> profileData) {
-        Usuario usuario = getLoggedUser();
-
-        if (profileData.containsKey("username")) {
-            String newUsername = profileData.get("username").toString();
-            if (!newUsername.equals(usuario.getUsername()) && usuarioRepository.existsByUsername(newUsername)) {
-                throw new com.joaopaulo.musicas.exceptions.EmailJaCadastradoException("Este username já está em uso.");
-            }
-            usuario.setUsername(newUsername);
-        }
-
-        if (profileData.containsKey("displayName")) usuario.setDisplayName(profileData.get("displayName").toString());
-        if (profileData.containsKey("personalName")) usuario.setPersonalName(profileData.get("personalName").toString());
-        if (profileData.containsKey("showPersonalName")) usuario.setShowPersonalName((Boolean) profileData.get("showPersonalName"));
-        if (profileData.containsKey("showSpotifyActivity")) usuario.setShowSpotifyActivity((Boolean) profileData.get("showSpotifyActivity"));
-
-        return usuarioRepository.save(java.util.Objects.requireNonNull(usuario));
-
-    }
 
 
     public Usuario updateFavoriteMusic(Map<String, Object> favoriteData) {

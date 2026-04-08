@@ -14,6 +14,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
+import com.fasterxml.jackson.databind.JsonNode;
+import org.springframework.http.MediaType;
 
 import java.util.List;
 import java.util.Optional;
@@ -278,7 +280,7 @@ public class PlaylistService {
         if (auth == null || !(auth.getPrincipal() instanceof com.joaopaulo.musicas.security.UsuarioDetails details)) {
             throw new UnauthorizedException("Usuário não está autenticado");
         }
-        return null;
+        return details.getId();
     }
 
     @SuppressWarnings("null")

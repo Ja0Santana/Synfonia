@@ -32,8 +32,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             @org.springframework.lang.NonNull HttpServletResponse response,
             @org.springframework.lang.NonNull FilterChain filterChain
     ) throws ServletException, IOException {
-
-a        log.debug("[AuthFilter] Processando requisição: {} {}", request.getMethod(), request.getRequestURI());
+        log.debug("[AuthFilter] Processando requisição: {} {}", request.getMethod(), request.getRequestURI());
 
         // Ignorar requisições OPTIONS (Preflight de CORS)
         if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
