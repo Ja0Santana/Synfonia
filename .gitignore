@@ -83,3 +83,6 @@ Thumbs.db
 create_db_local.sql
 create_db.sql
 *.sql.local
+create_db.sql
+*.sql
+create_db_template.sql
