@@ -11,8 +11,9 @@ version = '0.0.1-SNAPSHOT'
 description = 'Projeto de musicas - Core System'
 
 java {
-	sourceCompatibility = JavaVersion.VERSION_21
-	targetCompatibility = JavaVersion.VERSION_21
+	toolchain {
+		languageVersion = JavaLanguageVersion.of(21)
+	}
 }
 
 configurations {
