@@ -64,6 +64,7 @@ dependencies {
 	// 9. Serialização de Datas
 	implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
 	implementation 'com.bucket4j:bucket4j-core:8.10.1'
+	compileOnly 'com.google.code.findbugs:jsr305:3.0.2'
 }
 
 // 🛠️ Configuração Estratégica para Compilação
